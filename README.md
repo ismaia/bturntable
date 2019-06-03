@@ -1,11 +1,10 @@
-# BTurntable
+# BTurntable : Making a turntable connect to a bluetooth speaker
 
-## Making an old turntable connect to a bluetooth speaker
 
 ### Intro
  ![AF180](images/af180.jpg)
 
-When my nice yellow Philips turntable (AF180) broke I was very sad and decided to fix it, but instead of fixing the old electronic components I had an idea: why not connect my turntable to a Bluetooth speaker ? 
+When my nice yellow philips vinyl turntable (AF180) broke I was very sad and decided to fix it, but instead of fixing the old electronic components I had an idea: why not connect my turntable to a Bluetooth speaker ? 
 
 Turntable devices can be adapted with a [RIAA phono preamplifier](http://sound.whsites.net/project06.htm)  who is a perfect match but these modules are usually expensive
 
