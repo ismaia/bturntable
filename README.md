@@ -9,8 +9,9 @@ When my nice yellow Philips turntable (AF180) broke I was very sad and decided t
 
 Turntable devices can be adapted with a [RIAA phono preamplifier](http://sound.whsites.net/project06.htm)  who is a perfect match but these modules are usually expensive
 
-Instead of buying relatively expensive electronics (RIAA module + power supply), I decided to try a cheap solution : 
- ![An USB audio adapter](images/usb_audio_adapter.jpg)
+Instead of buying relatively expensive electronics (RIAA module + power supply), I decided to try a cheap solution : *An cheap USB audio adapter*
+
+![](images/usb_audio_adapter.jpg |width=100)
 
 As the turntable's cartridge produce very small voltage levels (uV ~ mV ) the mic preamp inside the USB adapter is certainly not a perfect match but  it worked very well after my first tests.
 
