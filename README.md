@@ -11,7 +11,7 @@ Turntable devices can be adapted with a [RIAA phono preamplifier](http://sound.w
 
 Instead of buying relatively expensive electronics (RIAA module + power supply), I decided to try a cheap solution : *An cheap USB audio adapter*
 
-![](images/usb_audio_adapter.jpg |width=100)
+![](images/usb_audio_adapter.jpg = 250 )
 
 As the turntable's cartridge produce very small voltage levels (uV ~ mV ) the mic preamp inside the USB adapter is certainly not a perfect match but  it worked very well after my first tests.
 
