@@ -12,11 +12,15 @@ Instead of buying relatively expensive electronics (RIAA module + power supply),
 
 ![](images/usb_audio_adapter.jpg)
 
-As the turntable's cartridge produce very small voltage levels (uV ~ mV ) the mic preamp inside the USB adapter is certainly not a perfect match but  it worked very well after my first tests.
+As the turntable's cartridge produce very small voltage levels (uV ~ mV ) the mic preamp inside the USB adapter is certainly not a perfect match but **it worked very well after my first tests**.
+Once we're in digital domain we can improve sound quality by doing some equalization,  noise removal and everything we want, including RIAA equalization. We can do it all these with a swiss knife called SoX
 
-Once we are in digital domain we can improve sound quality by doing some equalization,  noise removal and everything we want, including RIAA equalization. We can do it all these with a swiss knife called SoX
+The main advantage of this approach is that if you have a bt speaker (almost sure!) you can build this system for less than $20 (rpi zero + usb hub + audio usb adapter + jack cable)
 
-[You can check the result on YouTube](youtube.com)
+As I already had a raspberry pi3 and a good UBS BT adapter I preferred to use it but all my tests on a rpi zero worked as well
+
+
+[You can check the video on YouTube](youtube.com)
 
 
 ### Parts
