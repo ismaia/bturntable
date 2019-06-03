@@ -45,6 +45,8 @@ As I already had a raspberry pi3 and a good UBS BT adapter I preferred to use th
 
 ### Installing Dependencies
 
+I decided to use alsa because pulseaudio was not responsive and gave big latency in my tests, but if you want to use pulseaudio i'll give you the command at the end of this section
+
 On the Raspberry pi : 
 ``` 
  apt install bluez-alsa sox
@@ -81,10 +83,6 @@ Make sure you can see your audio usb dongle on your rpi :
 ``` 
 arecord -l 
 ``` 
-
-
-
-I deciced to use alsa because pulseaudio was not responsive and gave big latency in my tests, but if you want to use pulseaudio i'll give you the command at the end of this section
 
 
 
