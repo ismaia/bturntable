@@ -17,8 +17,7 @@ Once we're in digital domain we can improve sound quality by doing some equaliza
 
 The main advantage of this approach is that if you have a bt speaker (almost sure!) you can build this system for less than $20 (rpi zero + usb hub + audio usb adapter + jack cable)
 
-As I already had a raspberry pi3 and a good UBS BT adapter I preferred to use it but all my tests on a rpi zero worked as well
-
+As I already had a raspberry pi3 and a good UBS BT adapter I preferred to use them but nothing prevents you from running the system on a raspberry pi zero w (TODO)
 
 [You can check the video on YouTube](youtube.com)
 
