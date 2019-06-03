@@ -8,7 +8,7 @@ When my nice yellow philips vinyl turntable (AF180) broke I was very sad and dec
 
 Turntable devices can be adapted with a [RIAA phono preamplifier](http://sound.whsites.net/project06.htm)  who is a perfect match but these modules are usually expensive
 
-Instead of buying relatively expensive electronics (RIAA module + power supply), I decided to try a cheap solution : *An cheap USB audio adapter*
+Instead of buying relatively expensive electronics (RIAA module + power supply), I decided to try a cheap solution  ( ~ $2 ) : *An USB audio adapter*
 
 ![](images/usb_audio_adapter.jpg)
 
