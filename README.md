@@ -1,4 +1,4 @@
-# BTurntable : Making a turntable connect to a bluetooth speaker
+# BTurntable : Making a vintage turntable connect to a bluetooth speaker
 
 
 ### Intro
