@@ -17,6 +17,9 @@ As the turntable's cartridge produce very small voltage levels (uV ~ mV ) the mi
 
 Once we are in digital domain we can improve sound quality by doing some equalization,  noise removal and everything we want, including RIAA equalization. We can do it all these with a swiss knife called SoX
 
+[You can check the result on YouTube](youtube.com)
+
+
 ### Parts
 
 * A Raspberry PI zero or a Raspberry PI 3
