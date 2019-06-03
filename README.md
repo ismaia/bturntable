@@ -3,7 +3,7 @@
 ## Making an old turntable connect to a bluetooth speaker
 
 ### Intro
- ![AF180](images/af180.png)
+ ![AF180](images/af180.jpg)
 
 When my nice yellow Philips turntable (AF180) broke I was very sad and decided to fix it, but instead of fixing the old electronic components I had an idea: why not connect my turntable to a Bluetooth speaker ? 
 
