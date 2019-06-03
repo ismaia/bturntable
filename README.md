@@ -21,15 +21,15 @@ Once we are in digital domain we can improve sound quality by doing some equaliz
 
 * A Raspberry PI zero or a Raspberry PI 3
 * Any Audio USB Adapter that works on linux
-* 3.5 mm mono jack cable 
+* 3.5 mm jack cable mono (red,white and black wires)
 
 ### Wiring
 
- * *Cartridge* : As we want to send audio over a small bluetooth speaker, it makes no sense separating left and right channels from the cartridge. We must mix the two channels by shorting both wires into a single one. This wire will have a signal mixed from two channels. An advantage is that doing this approach we'll need a single audio usb adapter instead of two. As mic input is always mono this approach will carry the mixed signal into the mic input
+ * **Cartridge** : As we want to send audio over a small bluetooth speaker, it makes no sense separating left and right channels from the cartridge. We must mix the two channels by shorting both wires into a single one. This wire will have a signal mixed from two channels. An advantage is that doing this approach we'll need a single audio usb adapter instead of two. As mic input is always mono this approach will carry the mixed signal into the mic input
 
  ![Cartridge wiring](images/cartridge_wiring.png)
 
- * *Ground* : To avoid noise make sure that all grounds are connected together, even the wire coming from the outlet. Don't forget to connect all these on the turntable's metal case
+ * **Ground** : To avoid noise make sure that all grounds are connected together, even the wire coming from the outlet. Don't forget to connect all these on the turntable's metal case
 
-** *3.5 mm jack cable*
+** **3.5 mm jack cable**
  ![Jack wiring](images/jack_wiring.png)
