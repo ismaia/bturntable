@@ -26,7 +26,7 @@ As I already had a raspberry pi3 and a good UBS BT adapter I preferred to use th
 
 * A Raspberry PI zero or a Raspberry PI 3
 * Any Audio USB Adapter that works on linux
-* 3.5 mm jack cable mono (red,white and black wires)
+* 3.5 mm jack cable (for headphones : left, right and ground wires)
 
 ### Wiring
 
