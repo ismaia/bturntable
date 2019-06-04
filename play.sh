@@ -14,7 +14,8 @@ SR=48000
 BUF_SZ=2048
 BR=24
 #EFFECTS="riaa noisered noise.prof 0.21 treble 20"
-EFFECTS="noisered $PRJ_ROOT_DIR/conf/noise.prof 0.30 riaa treble 15"
+#EFFECTS="noisered $PRJ_ROOT_DIR/conf/noise.prof 0.30 riaa treble 15"
+EFFECTS="noisered $PRJ_ROOT_DIR/conf/noise.prof 0.30 :  riaa : treble 15"
 VERBOSE="-V1 -q"
 
 # trap ctrl-c and call ctrl_c()
