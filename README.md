@@ -37,10 +37,12 @@ As I already had a raspberry pi3 and a good UBS BT adapter I preferred to use th
  * **Ground** : To avoid noise make sure that all grounds are connected together, even the wire coming from the outlet. Don't forget to connect all these on the turntable's metal case
 
  * **3.5 mm jack cable**
+
  ![Jack wiring](images/jack_cable.jpg)
 
 
  * **Rpi connections**
+
  ![Jack wiring](images/rpi_connections.jpg)
 
 
