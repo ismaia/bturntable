@@ -2,7 +2,6 @@
 
 #the full directory name of the script no matter where it is being called from
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-PRJ_ROOT_DIR=`(cd $SCRIPT_DIR/.. && pwd)`
 
 BD_ADDR=C0:28:8D:85:FB:13
 DBUS_ADDR=$(echo $BD_ADDR | tr : _)
@@ -13,9 +12,8 @@ PLAYBACK_DEV="bluealsa:HCI=hci0,DEV=C0:28:8D:85:FB:13,PROFILE=a2dp"
 SR=48000
 BUF_SZ=2048
 BR=24
-#EFFECTS="riaa noisered noise.prof 0.21 treble 20"
-#EFFECTS="noisered $PRJ_ROOT_DIR/conf/noise.prof 0.30 riaa treble 15"
-EFFECTS="noisered $PRJ_ROOT_DIR/conf/noise.prof 0.30 :  riaa : treble 15"
+#EFFECTS="noisered $SCRIPT_DIR/conf/noise.prof 0.30 riaa treble 15"
+EFFECTS="noisered $SCRIPT_DIR/conf/noise.prof 0.30 :  riaa : treble 15"
 VERBOSE="-V1 -q"
 
 # trap ctrl-c and call ctrl_c()
