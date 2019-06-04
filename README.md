@@ -37,10 +37,12 @@ As I already had a raspberry pi3 and a good UBS BT adapter I preferred to use th
  * **Ground** : To avoid noise make sure that all grounds are connected together, even the wire coming from the outlet. Don't forget to connect all these on the turntable's metal case
 
  * **3.5 mm jack cable**
- ![Jack wiring](images/jack_wiring.png)
+ ![Jack wiring](images/jack_cable.jpg)
 
 
- * All system connections
+ * **Rpi connections**
+ ![Jack wiring](images/rpi_connections.jpg)
+
 
 
 ### Installing Dependencies
@@ -75,13 +77,13 @@ XX:XX:XX:XX:XX #our speaker
 
 Make sure you can see your bt speaker on your rpi :
 ``` 
-aplay -l 
+ 
 ``` 
 
 
 Make sure you can see your audio usb dongle on your rpi :
 ``` 
-arecord -l 
+
 ``` 
 
 
