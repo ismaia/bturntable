@@ -3,7 +3,6 @@
 
 ### Intro
  ![AF180](images/af180-0.jpg)
- ![AF180](images/af180-1.jpg)
 
 When my nice yellow philips vinyl turntable (AF180) broke I was very sad and decided to fix it, but instead of fixing the old electronic components I had an idea: why not connect my turntable to a Bluetooth speaker ? 
 
