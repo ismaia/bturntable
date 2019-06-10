@@ -9,11 +9,10 @@ DBUS_ADDR=$(echo $BD_ADDR | tr : _)
 REC_DEV="plughw:1,0"
 PLAYBACK_DEV="bluealsa:HCI=hci0,DEV=C0:28:8D:85:FB:13,PROFILE=a2dp"
 
-SR=48000
-BUF_SZ=2048
-BR=24
-#EFFECTS="noisered $SCRIPT_DIR/conf/noise.prof 0.30 riaa treble 15"
-EFFECTS="noisered $SCRIPT_DIR/conf/noise.prof 0.30 :  riaa : treble 15"
+SR=44100
+BUF_SZ=4096
+BR=16
+EFFECTS="noisered $SCRIPT_DIR/conf/noise.prof 0.30 : riaa :  treble 10"
 VERBOSE="-V1 -q"
 
 # trap ctrl-c and call ctrl_c()
@@ -46,6 +45,8 @@ do
 
   if [ "$conn_status" == "true" ];
   then
+      amixer -D bluealsa sset 'UE BOOM 2 - A2DP'  35%
+
       AUDIODEV=$REC_DEV      rec  $VERBOSE --buffer $BUF_SZ -c 1 -t wav -r $SR -b $BR -e signed-integer - $EFFECTS  | \
       AUDIODEV=$PLAYBACK_DEV play $VERBOSE --buffer $BUF_SZ -c 1 -t wav -r $SR -b $BR -e signed-integer -
 
