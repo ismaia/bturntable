@@ -12,7 +12,7 @@ PLAYBACK_DEV="bluealsa:HCI=hci0,DEV=C0:28:8D:85:FB:13,PROFILE=a2dp"
 SR=44100
 BUF_SZ=4096
 BR=16
-EFFECTS="noisered $SCRIPT_DIR/conf/noise.prof 0.30 : riaa :  treble 10"
+EFFECTS="noisered $SCRIPT_DIR/conf/noise.prof 0.30 : riaa :  bass +10 : treble 5"
 VERBOSE="-V1 -q"
 
 # trap ctrl-c and call ctrl_c()
