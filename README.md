@@ -42,6 +42,10 @@ The main advantage of this approach is that if you have a bt speaker (almost sur
 
  * **Ground** : To avoid noise make sure that all grounds are connected together, even the wire coming from the outlet. Don't forget to connect all these on the turntable's metal case
 
+### The Assembly
+ 
+  The result of all parts assembled into the plastic case of my turntable
+ ![assembly](images/assembly.jpg)
 
 
 ### Installing Dependencies
