@@ -17,7 +17,10 @@ Instead of buying relatively expensive electronics (RIAA module + power supply),
 As the turntable's cartridge produce very small voltage levels (uV ~ mV ) the mic preamp inside the USB adapter is certainly not a perfect match but **it worked very well after my first tests**.
 Once we're in digital domain we can improve sound quality by doing some equalization,  noise removal and everything we want, including RIAA equalization. We can do it all these with a swiss knife called SoX
 
-The main advantage of this approach is that if you have a bt speaker (almost sure!) you can build this system for less than $20 (rpi zero + audio usb adapter)
+The main advantage of this approach is that if you have a bt speaker (almost sure!) you can build this system for less than $20 (rpi zero + audio usb adapter) and **all sound control can be done by MQTT protocol**
+
+I coded a bash script that automates everything, all you need is to install dependencies on the rpi and a MQTT client into your phone.
+
 
 ### Parts
 
@@ -54,32 +57,47 @@ I decided to use alsa because pulseaudio was not responsive and gave big latency
 
 On the Raspberry pi : 
 ``` 
- apt install bluez-alsa sox
+ apt install bluez-alsa sox mosquitto mosquitto-clients
 ```
 
-### Running 
+### Running the system
 
 #### Pairing and connecting the bt speaker 
 
+Before anything else we need to pair the speaker. Once pairing is done we can use our script to 
+reconnect automatically and run the system 
+
 ```
 #bluetoothctl
-[bluetooth]# agent on
-Agent registered
 [bluetooth]# scan on
+Discovery started                                                                                                                                                                                                  
+...
+[NEW] Device 08:EB:ED:C6:AF:17 OontZ_Angle 3S F17  
+...
+[bluetooth]# pair 08:EB:ED:C6:AF:17
+Attempting to pair with 08:EB:ED:C6:AF:17
+...
+Pairing successful
+[bluetooth]# scan off
+[bluetooth]# trust 08:EB:ED:C6:AF:17
+[CHG] Device 08:EB:ED:C6:AF:17 Trusted: yes
+Changing 08:EB:ED:C6:AF:17 trust succeeded
 
-XX:XX:XX:XX:XX #our speaker 
-
-[bluetooth]# pair XX:XX:XX:XX:XX
-
-[bluetooth]# trust XX:XX:XX:XX:XX
-
-[bluetooth]# connect XX:XX:XX:XX:XX
 ```
 
+
+
+
+
+```
+
+```
 
 #### Volume control 
 
-
+```
+amixer -D bluealsa sset 'OontZ_Angle 3S F17'  45%"
+```
 
 
 
