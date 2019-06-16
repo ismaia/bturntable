@@ -51,54 +51,36 @@ I coded a bash script that automates everything, all you need is to install depe
  ![assembly](images/assembly.jpg)
 
 
-### Installing Dependencies
+### Installation
 
-I decided to use alsa because pulseaudio was not responsive and gave big latency in my tests
-
-On the Raspberry pi : 
+* On the Raspberry PI : 
 ``` 
- apt install bluez-alsa sox mosquitto mosquitto-clients
+ apt install bluez-alsa sox mosquitto mosquitto-clients make
+ git clone https://github.com/ismaia/bturntable
+ cd bturntable
+ make install
 ```
 
-### Running the system
+* Smartphone Client
+ * [IoT MQTT Panel](https://play.google.com/store/apps/details?id=snr.lab.iotmqttpanel.prod&hl=en)
 
-#### Pairing and connecting the bt speaker 
+Open IoT MQQT Panel app , download the and import the json config file [IoT-MQTT-Panel-bturntable.json](https://github.com/ismaia/bturntable/blob/master/conf/IoT-MQTT-Panel-bturntable.json) on the app to get the basic settings
 
-Before anything else we need to pair the speaker. Once pairing is done we can use our script to 
-reconnect automatically and run the system 
-
-```
-#bluetoothctl
-[bluetooth]# scan on
-Discovery started                                                                                                                                                                                                  
-...
-[NEW] Device 08:EB:ED:C6:AF:17 OontZ_Angle 3S F17  
-...
-[bluetooth]# pair 08:EB:ED:C6:AF:17
-Attempting to pair with 08:EB:ED:C6:AF:17
-...
-Pairing successful
-[bluetooth]# scan off
-[bluetooth]# trust 08:EB:ED:C6:AF:17
-[CHG] Device 08:EB:ED:C6:AF:17 Trusted: yes
-Changing 08:EB:ED:C6:AF:17 trust succeeded
-
-```
+Once the settings properly imported on the app, set the broker IP and a speaker name
 
 
+* PC (optional - if you don't want to use a smartphone)
+ * select speaker mosquitto_pub -t spkr_cmds "select speaker=SOME_SPKR_NAME"
+ * vol+:  mosquitto_pub -t audio_cmds "vol=5%+" 
+ * vol-:  mosquitto_pub -t audio_cmds "vol=5%-" 
 
 
+### Running some Vinyl LP
 
-```
+To run the system you need on setup raspberry with the *bturnplay* service and a smatphone with a MQTT client as said above
+All the pairing and connection process are automatic once the setup is done on both sides(rpi and smartphone) 
 
-```
-
-#### Volume control 
-
-```
-amixer -D bluealsa sset 'OontZ_Angle 3S F17'  45%"
-```
-
+Turn on the speaker and put it on pairing mode
 
 
 
