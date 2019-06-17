@@ -271,7 +271,11 @@ function main_service()
         "reboot"*)
           reboot
           ;;
+        "poweroff"*)
+          poweroff
+          ;;
       esac
+
     fi
   done
 }
