@@ -53,7 +53,7 @@ I coded a bash script that automates everything, all you need is to install depe
 
 ### Installation
 
-* On the Raspberry PI : 
+##### Raspberry PI  
 ``` 
  apt install bluez-alsa sox mosquitto mosquitto-clients make
  git clone https://github.com/ismaia/bturntable
@@ -61,15 +61,14 @@ I coded a bash script that automates everything, all you need is to install depe
  make install
 ```
 
-* Smartphone Client
- * [IoT MQTT Panel](https://play.google.com/store/apps/details?id=snr.lab.iotmqttpanel.prod&hl=en)
+##### Smartphone 
+  
+Install [IoT MQTT Panel](https://play.google.com/store/apps/details?id=snr.lab.iotmqttpanel.prod&hl=en) app.
+Download the and import the json config file [IoT-MQTT-Panel-bturntable.json](https://github.com/ismaia/bturntable/blob/master/conf/IoT-MQTT-Panel-bturntable.json) on the app to get the basic settings
 
-Open IoT MQQT Panel app , download the and import the json config file [IoT-MQTT-Panel-bturntable.json](https://github.com/ismaia/bturntable/blob/master/conf/IoT-MQTT-Panel-bturntable.json) on the app to get the basic settings
+Once the settings properly imported on the app, set the broker IP (raspberry pi IP) and a speaker name
 
-Once the settings properly imported on the app, set the broker IP and a speaker name
-
-
-* PC (optional - if you don't want to use a smartphone)
+##### PC (optional - if you don't want to use a smartphone)
  * select speaker mosquitto_pub -t spkr_cmds "select speaker=SOME_SPKR_NAME"
  * vol+:  mosquitto_pub -t audio_cmds "vol=5%+" 
  * vol-:  mosquitto_pub -t audio_cmds "vol=5%-" 
