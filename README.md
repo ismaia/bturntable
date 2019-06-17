@@ -69,9 +69,9 @@ Download the and import the json config file [IoT-MQTT-Panel-bturntable.json](ht
 Once the settings properly imported on the app, set the broker IP (raspberry pi IP) and a speaker name
 
 ##### PC (optional - if you don't want to use a smartphone)
- * select speaker mosquitto_pub -t spkr_cmds "select speaker=SOME_SPKR_NAME"
- * vol+:  mosquitto_pub -t audio_cmds "vol=5%+" 
- * vol-:  mosquitto_pub -t audio_cmds "vol=5%-" 
+ * Speaker setup:  mosquitto_pub -t "spkr_cmds" "select speaker=SOME_SPKR_NAME"
+ * vol+:  mosquitto_pub -t "audio_cmds" "vol=5%+" 
+ * vol-:  mosquitto_pub -t "audio_cmds" "vol=5%-" 
 
 
 ### Running some Vinyl LP
