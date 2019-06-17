@@ -34,7 +34,7 @@ I coded a bash script that automates everything, all you need is to install depe
 
  ![Cartridge wiring](images/cartridge.jpg)
 
- * **USB Audio adapter** : The Mic input of the usb audio adapter has only one input wire who is shorted as shown on the image, the two tap points (white rectangle) are the same wire on the adapter.
+ * **USB Audio adapter** : The Mic input of the usb audio adapter has only one input wire who is shorted as shown on the image, these two soldering joints (white rectangle) are the same wire on the adapter.
  
 ![usb audio adapter](images/usb_adapter.jpg)
  
