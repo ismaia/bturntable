@@ -3,9 +3,9 @@
 #the full directory name of the script no matter where it is being called from
 PRJ_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
-MAIN_TOPIC="main_cmds"
-SPKR_TOPIC="spkr_cmds"
-AUDIO_TOPIC="audio_cmds"
+MAIN_TOPIC="bturntable"
+SPKR_TOPIC="bturntable/speaker"
+AUDIO_TOPIC="bturntable/audio"
 
 MAIN_CMD_PIPE="/tmp/main_pipe"
 SPKR_CMD_PIPE="/tmp/spk_pipe"
@@ -38,7 +38,7 @@ HOST_BDADDR=$(hciconfig dev | grep -o "[[:xdigit:]:]\{11,17\}")
 #audio params
 REC_DEV="plughw:1,0"
 SR=44100
-BUF_SZ=4096
+BUF_SZ=2048
 BR=16
 EFFECTS="noisered $CONF_DIR/noise.prof 0.30 : riaa :  bass +10 : treble 5"
 VERBOSE="-V1 -q"
@@ -64,15 +64,16 @@ function ctrl_c() {
 function service_send_cmd() {
   export srv="$1"
   export cmd="$2"
+  export val="$3"
   case "$srv" in
     "speaker"*)
-      (sleep 0.4 ; mosquitto_pub -t "$SPKR_TOPIC" -m "$cmd" ) &
+      (sleep 0.4 ; mosquitto_pub -t "$SPKR_TOPIC" -m "$cmd""@""$val" ) &
       ;;
     "audio"*)
-      (sleep 0.4 ; mosquitto_pub -t "$AUDIO_TOPIC" -m "$cmd" ) &
+      (sleep 0.4 ; mosquitto_pub -t "$AUDIO_TOPIC" -m "$cmd""@""$val" ) &
       ;;
     "main"*)
-      (sleep 0.4 ; mosquitto_pub -t "$AUDIO_TOPIC" -m "$cmd" ) &
+      (sleep 0.4 ; mosquitto_pub -t "$AUDIO_TOPIC" -m "$cmd""@""$val" ) &
       ;;
   esac
    
@@ -81,8 +82,8 @@ function service_send_cmd() {
 #Select a paired speaker by name prefix 
 function speaker_select() {
   local name_prefix="$1"
-  local SPKR_BDADDR=""
-  local SPKR_NAME=""
+  local spkr_bdaddr=""
+  local spkr_name=""
 
   coproc bluetoothctl
   sleep 1
@@ -91,16 +92,16 @@ function speaker_select() {
   echo -e 'exit\n' >&${COPROC[1]}
   
   local output=$(cat <&${COPROC[0]})
-  SPKR_BDADDR=$(echo "$output"  | grep -i "Device.*$name_prefix"  | grep -o "[[:xdigit:]:]\{11,17\}")
-  SPKR_BDADDR=$(echo "$SPKR_BDADDR" | awk '{$1=$1;print}' | uniq) #trim 
-  SPKR_NAME=$(echo "$output"  | grep -i "Device.*$name_prefix" | sed -e 's/.*Device.*[[:xdigit:]:]\{11,17\}//g')
-  SPKR_NAME=$(echo "$SPKR_NAME" | awk '{$1=$1;print}' | uniq) #trim
+  spkr_bdaddr=$(echo "$output"  | grep -i "Device.*$name_prefix"  | grep -o "[[:xdigit:]:]\{11,17\}")
+  spkr_bdaddr=$(echo "$spkr_bdaddr" | awk '{$1=$1;print}' | uniq) #trim 
+  spkr_name=$(echo "$output"  | grep -i "Device.*$name_prefix" | sed -e 's/.*Device.*[[:xdigit:]:]\{11,17\}//g')
+  spkr_name=$(echo "$spkr_name" | awk '{$1=$1;print}' | uniq) #trim
   
-  if [ "$SPKR_BDADDR" != "" ];
+  if [ "$spkr_bdaddr" != "" ];
   then
-    echo "Selected speaker $SPKR_NAME @ $SPKR_BDADDR"
-    echo "$SPKR_BDADDR" > "$SPKR_CONF_FILE"
-    echo "$SPKR_NAME" >> "$SPKR_CONF_FILE"
+    echo "Selected speaker $spkr_name @ $spkr_bdaddr"
+    echo "$spkr_bdaddr" > "$SPKR_CONF_FILE"
+    echo "$spkr_name" >> "$SPKR_CONF_FILE"
   fi
 }
 
@@ -109,7 +110,7 @@ function speaker_pair() {
   name_prefix="$1"
   coproc bluetoothctl
   sleep 2
-  #find SPKR_BDADDR and SPKR_NAME
+  #find spkr_bdaddr and spkr_name
   sleep 2
   echo -e 'scan on\n' >&${COPROC[1]}
   sleep 15
@@ -119,18 +120,18 @@ function speaker_pair() {
   sleep 1
   echo -e 'exit\n' >&${COPROC[1]}
   local output=$(cat <&${COPROC[0]})
-  local SPKR_BDADDR=$(echo "$output" | grep -i "$name_prefix"  | grep -o "[[:xdigit:]:]\{11,17\}")
-  local SPKR_BDADDR=$(echo "$SPKR_BDADDR" | uniq)
-  local SPKR_NAME=$(echo "$output" | grep -i "$name_prefix" | sed -e 's/.*Device.*[[:xdigit:]:]\{11,17\}//g')
-  local SPKR_NAME=$(echo "$SPKR_NAME" | awk '{$1=$1;print}' | uniq)
+  local spkr_bdaddr=$(echo "$output" | grep -i "$name_prefix"  | grep -o "[[:xdigit:]:]\{11,17\}")
+  local spkr_bdaddr=$(echo "$spkr_bdaddr" | uniq)
+  local spkr_name=$(echo "$output" | grep -i "$name_prefix" | sed -e 's/.*Device.*[[:xdigit:]:]\{11,17\}//g')
+  local spkr_name=$(echo "$spkr_name" | awk '{$1=$1;print}' | uniq)
   coproc bluetoothctl
   sleep 2
-  #pair SPKR_BDADDR
+  #pair spkr_bdaddr
   echo -e 'scan on\n' >&${COPROC[1]}
   sleep 5
-  echo -e "trust $SPKR_BDADDR \n" >&${COPROC[1]}
+  echo -e "trust $spkr_bdaddr \n" >&${COPROC[1]}
   sleep 2
-  echo -e "pair $SPKR_BDADDR \n" >&${COPROC[1]}
+  echo -e "pair $spkr_bdaddr \n" >&${COPROC[1]}
   sleep 15
   echo -e 'scan off\n' >&${COPROC[1]}
   echo -e 'paired-devices\n' >&${COPROC[1]}
@@ -143,11 +144,11 @@ function speaker_service()
 {    
   echo "Speaker Service"
   mosquitto_sub -t "$SPKR_TOPIC" > $SPKR_CMD_PIPE & 
-  local SPKR_BDADDR=""
-  local SPKR_NAME=""
-  local SPKR_VOLCTL=""
-  local PLAYBACK_DEV=""
-  local DBUS_ADDR=""
+  local spkr_bdaddr=""
+  local spkr_name=""
+  local spkr_volctl=""
+  local playback_dev=""
+  local dbus_addr=""
 
   while true
   do
@@ -155,61 +156,48 @@ function speaker_service()
     then
       echo "Speaker Service received command : $cmd"
       case "$cmd" in     
-        "load_conf"*)
+        "load_last"*) #load last connected speaker
             if [ -f "$SPKR_CONF_FILE" ]; then
-              SPKR_BDADDR=$(cat "$SPKR_CONF_FILE" | head -1)
-              SPKR_NAME=$(cat "$SPKR_CONF_FILE" | tail -1)
-              SPKR_VOLCTL="'$SPKR_NAME - A2DP'"
-              PLAYBACK_DEV="bluealsa:HCI=hci0,DEV=$SPKR_BDADDR,PROFILE=a2dp"
-              DBUS_ADDR=$(echo $SPKR_BDADDR | tr : _)
-              echo "Loaded Speaker parameters: [$SPKR_NAME] , [$SPKR_BDADDR]"
+              spkr_bdaddr=$(cat "$SPKR_CONF_FILE" | head -1)
+              spkr_name=$(cat "$SPKR_CONF_FILE" | tail -1)
+              spkr_volctl="'$spkr_name - A2DP'"
+              playback_dev="bluealsa:HCI=hci0,DEV=$spkr_bdaddr,PROFILE=a2dp"
+              dbus_addr=$(echo $spkr_bdaddr | tr : _)
+              echo "Loaded Speaker parameters: [$spkr_name] , [$spkr_bdaddr]"
               
               #passing variables to audio service
-              service_send_cmd "audio" "PLAYBACK_DEV@$PLAYBACK_DEV"                
-              service_send_cmd "audio" "SPKR_VOLCTL@$SPKR_VOLCTL"
+              service_send_cmd "audio" "playback_dev@$playback_dev"                
+              service_send_cmd "audio" "spkr_volctl@$spkr_volctl"
               service_send_cmd "audio" "REC_DEV@$REC_DEV"               
-              service_send_cmd "audio" "EFFECTS@$EFFECTS"
+              service_send_cmd "audio" "EFFECTS@$EFFECTS"              
               service_send_cmd "speaker" "connect"
             fi
             ;;
         "connect"*)
-            echo "Trying to connect speaker [$SPKR_NAME] , [$SPKR_BDADDR] ..."
-            local conn_status_cmd=$(dbus-send --system --reply-timeout=2000 --dest=org.bluez --print-reply /org/bluez/hci0/dev_$DBUS_ADDR org.freedesktop.DBus.Properties.Get string:"org.bluez.Device1" string:"Connected" 2> /dev/null)
+            echo "Trying to connect speaker [$spkr_name] , [$spkr_bdaddr] ..."
+            local conn_status_cmd=$(dbus-send --system --reply-timeout=2000 --dest=org.bluez --print-reply /org/bluez/hci0/dev_$dbus_addr org.freedesktop.DBus.Properties.Get string:"org.bluez.Device1" string:"Connected" 2> /dev/null)
             conn_status=$(echo "$conn_status_cmd" | awk '/true|false/{print $3}')
             sleep 2
             if [ "$conn_status" == "true" ];
             then
-              echo "Speaker $SPKR_BDADDR connected"
+              echo "Speaker $spkr_bdaddr connected"
               service_send_cmd "speaker" "play"
             else
               echo "Speaker not connected, retrying..."
               sleep 10
-              dbus-send --system  --reply-timeout=2000 --dest=org.bluez --print-reply --type=method_call /org/bluez/hci0/dev_$DBUS_ADDR org.bluez.Device1.Connect &> /dev/null
+              dbus-send --system  --reply-timeout=2000 --dest=org.bluez --print-reply --type=method_call /org/bluez/hci0/dev_$dbus_addr org.bluez.Device1.Connect &> /dev/null
               service_send_cmd "speaker" "connect"              
             fi
             ;;
-        "select"*)
-            echo "Selecting speaker..."
-            prefix=$(echo "$cmd" | cut -d= -f2) 
-            speaker_select "$prefix" 
-            if [ -f "$SPKR_CONF_FILE" ]; 
-            then
-              service_send_cmd "speaker" "load_conf"
-            else
-              echo "No paired speaker found, trying to pair speaker [$prefix] ..."
-              speaker_pair "$prefix"
-            fi
-            ;;
-        "play"*)
-            echo "Starting playback..."
-            amixer -D bluealsa sset "$SPKR_VOLCTL" "30%" 
-            AUDIODEV=$REC_DEV      rec  $VERBOSE --buffer $BUF_SZ -c 1 -t wav -r $SR -b $BR -e signed-integer - $EFFECTS  | \
-            AUDIODEV=$PLAYBACK_DEV play $VERBOSE --buffer $BUF_SZ -c 1 -t wav -r $SR -b $BR -e signed-integer -              
-            #something went wrong 
-            service_send_cmd "speaker" "connect"
+        "pair"*)
+            #scan on
+            #scan off
+            #trusct 
+            #connect
+            #pair
+            
             ;;
         "stop"*)
-            sleep 10000
             ;; 
       esac
     fi
@@ -221,6 +209,9 @@ function speaker_service()
 function audio_service() {
   echo "Audio Service"
   mosquitto_sub -t "$AUDIO_TOPIC" > $AUDIO_CMD_PIPE & 
+  local spkr_volctl=""
+  local REC_DEV=""
+  local playback_dev=""
 
   while true
   do
@@ -231,20 +222,34 @@ function audio_service() {
         "vol"*)
           echo "volume up"
           vol=$(echo "$cmd" | cut -d= -f2)
-          amixer -D bluealsa sset "$SPKR_VOLCTL" "$vol" &> /dev/null
+          amixer -D bluealsa sset "$spkr_volctl" "$vol" &> /dev/null
           ;;
         "mute"*)
           echo "volume toggle"
-          amixer -D bluealsa sset "$SPKR_VOLCTL"  toggle &> /dev/null
+          amixer -D bluealsa sset "$spkr_volctl"  toggle &> /dev/null
+          ;;
+        "play"*)
+          echo "Starting playback..."
+          amixer -D bluealsa sset "$spkr_volctl" "30%" 
+          
+          #play in a subshell 
+          (
+          cpu_priority="chrt -r 99"
+          $cpu_priority AUDIODEV=$REC_DEV      rec  $VERBOSE --buffer $BUF_SZ -c 1 -t wav -r $SR -b $BR -e signed-integer - $EFFECTS  | \
+          $cpu_priority AUDIODEV=$playback_dev play $VERBOSE --buffer $BUF_SZ -c 1 -t wav -r $SR -b $BR -e signed-integer -              
+          ) &
+
+          #something went wrong 
+          service_send_cmd "speaker" "connect"
           ;;
         "REC_DEV"*) 
           REC_DEV=$(echo "$cmd" | cut -d@ -f2)
           ;;
-        "PLAYBACK_DEV"*)
-          PLAYBACK_DEV=$(echo "$cmd" | cut -d@ -f2)
+        "playback_dev"*)
+          playback_dev=$(echo "$cmd" | cut -d@ -f2)
           ;;
-        "SPKR_VOLCTL"*)
-          SPKR_VOLCTL=$(echo "$cmd" | cut -d@ -f2)
+        "spkr_volctl"*)
+          spkr_volctl=$(echo "$cmd" | cut -d@ -f2)
           ;;
         "EFFECTS"*)
           EFFECTS=$(echo "$cmd" | cut -d@ -f2)
@@ -257,6 +262,8 @@ function audio_service() {
   done
 }
 
+
+#This service will dispatch msgs to local services
 function main_service() 
 {
   echo "Main Service"
@@ -266,8 +273,29 @@ function main_service()
   do
     if read cmd <$MAIN_CMD_PIPE; 
     then      
-      echo "Main Service received command : $cmd"
+      echo "Received cmd : $cmd"
       case "$cmd" in
+        #try to pair and conntct ao a specific speaker
+        "connect"*) 
+          #format: connect=SPEAKER_NAME_PREFIX
+          spkr_name_prefix=$(echo "$cmd" | cut -d= -f2)
+          service_send_cmd "speaker" "connect" "$spkr_name_prefix"
+          ;;
+        #send effects to sox
+        "effects"*)
+          ;;
+
+        #volume control
+        "vol"*)
+          #format: vol=5%+ , 5%- , 1db+ , 1db- 
+          val=$(echo "$cmd" | cut -d= -f2)
+          service_send_cmd "audio" "vol" "$val"
+          ;;
+
+        "mute"*)
+          service_send_cmd "audio" "mute"          
+          ;;
+
         "reboot"*)
           reboot
           ;;
@@ -287,7 +315,7 @@ speaker_service &
 sleep 1
 audio_service &
 sleep 2
-service_send_cmd "speaker" "load_conf"
+service_send_cmd "speaker" "load_last"
 
 while true :
 do

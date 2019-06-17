@@ -61,20 +61,24 @@ I coded a bash script that automates everything, all you need is to install depe
  make install
 ```
 
-##### Smartphone 
+##### Phone/PC : MQTT client 
   
-Install [IoT MQTT Panel](https://play.google.com/store/apps/details?id=snr.lab.iotmqttpanel.prod&hl=en) app.
-Download the and import the json config file [IoT-MQTT-Panel-bturntable.json](https://github.com/ismaia/bturntable/blob/master/conf/IoT-MQTT-Panel-bturntable.json) on the app to get the basic settings
-
-Once the settings properly imported on the app, set the broker IP (raspberry pi IP) and a speaker name
-
-##### PC (optional - if you don't want to use a smartphone)
+ * MQTT Topics
+    *
+     
  * Speaker setup:  mosquitto_pub -t "spkr_cmds" "select speaker=SOME_SPKR_NAME"
  * vol+:  mosquitto_pub -t "audio_cmds" "vol=5%+" 
  * vol-:  mosquitto_pub -t "audio_cmds" "vol=5%-" 
 
 
-### Running some Vinyl LP
+Install [IoT MQTT Panel](https://play.google.com/store/apps/details?id=snr.lab.iotmqttpanel.prod&hl=en) app.
+Download the and import the json config file [IoT-MQTT-Panel-bturntable.json](https://github.com/ismaia/bturntable/blob/master/conf/IoT-MQTT-Panel-bturntable.json) on the app to get the basic settings
+
+Once the settings properly imported on the app, set the broker IP (raspberry pi IP) and a speaker name
+
+
+
+### Playing some Vinyl LP
 
 To run the system you need on setup raspberry with the *bturnplay* service and a smatphone with a MQTT client as said above
 All the pairing and connection process are automatic once the setup is done on both sides(rpi and smartphone) 
