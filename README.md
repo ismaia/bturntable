@@ -61,21 +61,19 @@ I coded a bash script that automates everything, all you need is to install depe
  make install
 ```
 
-##### Phone/PC : MQTT client 
+##### MQTT client 
+  We can use a smartphone or a PC to control everything 
   
- * MQTT Topics
-    *
-     
- * Speaker setup:  mosquitto_pub -t "spkr_cmds" "select speaker=SOME_SPKR_NAME"
- * vol+:  mosquitto_pub -t "audio_cmds" "vol=5%+" 
- * vol-:  mosquitto_pub -t "audio_cmds" "vol=5%-" 
-
-
-Install [IoT MQTT Panel](https://play.google.com/store/apps/details?id=snr.lab.iotmqttpanel.prod&hl=en) app.
-Download the and import the json config file [IoT-MQTT-Panel-bturntable.json](https://github.com/ismaia/bturntable/blob/master/conf/IoT-MQTT-Panel-bturntable.json) on the app to get the basic settings
-
-Once the settings properly imported on the app, set the broker IP (raspberry pi IP) and a speaker name
-
+ * MQTT Topic : btt        
+ * MQTT Messages:
+   * Speaker setup and connection :  mosquitto_pub -t "btt" "connect=SPKR_NAME_PREFIX"
+   * Volume+:  mosquitto_pub -t "btt" "vol=5%+"   
+   * Volume-:  mosquitto_pub -t "btt" "vol=5%-" 
+   * Bass+  :  mosquitto_pub -t "btt" "bass=10%-" 
+   * Bass-  :  mosquitto_pub -t "btt" "bass=10%-"    
+   * treble+:  mosquitto_pub -t "btt" "treble=10%+" 
+   * treble+:  mosquitto_pub -t "btt" "treble=10%-" 
+   * click noise reduction: mosquitto_pub -t "btt" "noise_red=2%+" 
 
 
 ### Playing some Vinyl LP
