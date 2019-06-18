@@ -1,0 +1,13 @@
+[Unit]
+Description=BTurnTable service
+After=mosquitto.service
+StartLimitIntervalSec=0
+
+[Service]
+Type=simple
+Restart=always
+RestartSec=5
+ExecStart=/bin/bash /usr/bin/btt
+
+[Install]
+WantedBy=multi-user.target
