@@ -73,10 +73,17 @@ I coded a bash script that automates everything, all you need is to install depe
    * Bass-  :  mosquitto_pub -t "btt" "bass=10%-"    
    * treble+:  mosquitto_pub -t "btt" "treble=10%+" 
    * treble+:  mosquitto_pub -t "btt" "treble=10%-" 
-   * click noise reduction: mosquitto_pub -t "btt" "noise_red=2%+" 
+   * noise reduction: mosquitto_pub -t "btt" "noise_red=2%+" 
 
 
 ### Playing some Vinyl LP
+
+Once you've installed rpi side you can start the system by running the command:
+
+```
+mosquitto_pub -t "btt" "connect=SPKR_NAME_PREFIX"
+```
+
 
 To run the system you need on setup raspberry with the *bturnplay* service and a smatphone with a MQTT client as said above
 All the pairing and connection process are automatic once the setup is done on both sides(rpi and smartphone) 

@@ -8,6 +8,9 @@ Type=simple
 Restart=always
 RestartSec=5
 ExecStart=/bin/bash /usr/bin/btt
+StandardOutput=inherit
+StandardError=inherit
+
 
 [Install]
 WantedBy=multi-user.target
