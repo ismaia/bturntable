@@ -18,8 +18,8 @@ function ctrl_c() {
 
 
 MAIN_TOPIC="btt"
-SPKR_TOPIC="btt/speaker"
-AUDIO_TOPIC="btt/audio"
+SPKR_TOPIC="speaker"
+AUDIO_TOPIC="audio"
 
 MAIN_PIPE="/tmp/btt_pipe"
 SPKR_PIPE="/tmp/btt_spk_pipe"
@@ -129,10 +129,14 @@ function speaker_service()
               echo "Speaker $spkr_bdaddr connected"
               #passing variables to audio service
               service_exec_cmd "audio" "playback_dev" "$playback_dev"
+              sleep 0.4
               service_exec_cmd "audio" "spkr_volctl"  "$spkr_volctl"
+              sleep 0.4
               service_exec_cmd "audio" "rec_dev"      "$rec_dev"
+              sleep 0.4
               service_exec_cmd "audio" "sox_effects"  "$sox_effects"
-              service_exec_cmd "audio" "play"
+              sleep 0.4
+              service_exec_cmd "audio" "bttplay"
             else
               echo "Speaker not connected, retrying..."
               conn_retry=$((conn_retry+1))
@@ -222,9 +226,9 @@ function audio_service() {
   local spkr_volctl=""
   local rec_dev="plughw:1,0"
   local playback_dev=""
-  local sr=44100
-  local buff_sz=2048
-  local br=16
+  local sr="44100"
+  local buff_sz="2048"
+  local br="16"
   local sox_effects="noisered $CONF_DIR/noise.prof 0.30 : riaa :  bass +10 : treble 5"
   local sox_logs="-V1 -q"
 
@@ -247,19 +251,40 @@ function audio_service() {
           echo "volume toggle"
           amixer -D bluealsa sset "$spkr_volctl"  toggle &> /dev/null
           ;;
-        "play"*)
+        "bttplay"*)
           echo "Starting playback..."
-          amixer -D bluealsa sset "$spkr_volctl" "30%" 
-          
+          amixer -D bluealsa sset "$spkr_volctl" "60%" 
+
+          export rec_dev="$rec_dev"
+          export playback_dev="$playback_dev"
+          export sox_logs="$sox_logs"
+          export buff_sz="$buff_sz"
+          export sr="$sr"
+          export br="$br"
+          export sox_effects="$sox_effects"
+
           #play in a subshell 
           (
-            cpu_priority="chrt -r 99" #real time 
-            $cpu_priority AUDIODEV=$rec_dev      rec  $sox_logs --buffer $buff_sz -c 1 -t wav -r $sr -b $br -e signed-integer - $sox_effects  | \
-            $cpu_priority AUDIODEV=$playback_dev play $sox_logs --buffer $buff_sz -c 1 -t wav -r $sr -b $br -e signed-integer -              
-
+    
+            echo "AUDIODEV=$rec_dev rec $sox_logs --buffer $buff_sz -c 1 -t wav -r $sr -b $br -e signed-integer - $sox_effects"
+            echo "AUDIODEV=$playback_dev play $sox_logs --buffer $buff_sz -c 1 -t wav -r $sr -b $br -e signed-integer -"
+            
+            AUDIODEV="$rec_dev" rec  $sox_logs --buffer $buff_sz -c 1 -t wav -r $sr -b $br -e signed-integer - $sox_effects  | \
+            AUDIODEV="$playback_dev" play $sox_logs --buffer $buff_sz -c 1 -t wav -r $sr -b $br -e signed-integer -            
+            
             #something went wrong above
             service_exec_cmd "speaker" "connect" "last_speaker"
           ) &
+            
+            rec_pid=$(pgrep -a rec | grep signed-integer | cut -d" " -f1)
+            play_pid=$(pgrep -a play | grep signed-integer | cut -d" " -f1) 
+            bluealsa_pid=$(pgrep -a bluealsa | grep /usr/bin/bluealsa | cut -d" " -f1)
+            
+            #cpu rt priority to audio processes
+            chrt -p 99 $bluealsa_pid            
+            chrt -p 99 $rec_pid
+            chrt -p 99 $play_pid
+
 
           ;;
         "rec_dev"*) 
