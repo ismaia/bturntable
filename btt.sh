@@ -18,8 +18,8 @@ function ctrl_c() {
 
 
 MAIN_TOPIC="btt"
-SPKR_TOPIC="speaker"
-AUDIO_TOPIC="audio"
+SPKR_TOPIC="btt/speaker"
+AUDIO_TOPIC="btt/audio"
 
 MAIN_PIPE="/tmp/btt_pipe"
 SPKR_PIPE="/tmp/btt_spk_pipe"
@@ -136,6 +136,8 @@ function speaker_service()
               sleep 0.4
               service_exec_cmd "audio" "sox_effects"  "$sox_effects"
               sleep 0.4
+              service_exec_cmd "audio" "spkr_name"  "$spkr_name"
+              sleep 0.4
               service_exec_cmd "audio" "bttplay"
             else
               echo "Speaker not connected, retrying..."
@@ -224,13 +226,17 @@ function speaker_service()
 function audio_service() {
   #audio params
   local spkr_volctl=""
+  local spkr_name=""
   local rec_dev="plughw:1,0"
   local playback_dev=""
   local sr="44100"
   local buff_sz="2048"
-  local br="16"
-  local sox_effects="noisered $CONF_DIR/noise.prof 0.30 : riaa :  bass +10 : treble 5"
+  local br="16"  
   local sox_logs="-V1 -q"
+  local sox_effects="noisered $CONF_DIR/noise.prof 0.30 : riaa :  bass +10 : treble 5"
+  if [ ! -f "$CONF_DIR/noise.prof" ] ; then #noise profile does not exists
+    sox_effects="riaa :  bass +10 : treble 5"
+  fi
 
   echo "Audio Service"
   mosquitto_sub -t "$AUDIO_TOPIC" > $AUDIO_PIPE & 
@@ -242,17 +248,15 @@ function audio_service() {
     then
       echo "audio command : $cmd"
       case "$cmd" in
-        "vol"*)
-          echo "volume up"
+        "vol"*)          
           vol=$(echo "$cmd" | cut -d= -f2)
           amixer -D bluealsa sset "$spkr_volctl" "$vol" &> /dev/null
           ;;
-        "mute"*)
-          echo "volume toggle"
+        "mute"*)        
           amixer -D bluealsa sset "$spkr_volctl"  toggle &> /dev/null
           ;;
         "bttplay"*)
-          echo "Starting playback..."
+          echo "Starting audio play on $spkr_name ..."
           amixer -D bluealsa sset "$spkr_volctl" "60%" 
 
           export rec_dev="$rec_dev"
@@ -265,10 +269,7 @@ function audio_service() {
 
           #play in a subshell 
           (
-    
-            echo "AUDIODEV=$rec_dev rec $sox_logs --buffer $buff_sz -c 1 -t wav -r $sr -b $br -e signed-integer - $sox_effects"
-            echo "AUDIODEV=$playback_dev play $sox_logs --buffer $buff_sz -c 1 -t wav -r $sr -b $br -e signed-integer -"
-            
+
             AUDIODEV="$rec_dev" rec  $sox_logs --buffer $buff_sz -c 1 -t wav -r $sr -b $br -e signed-integer - $sox_effects  | \
             AUDIODEV="$playback_dev" play $sox_logs --buffer $buff_sz -c 1 -t wav -r $sr -b $br -e signed-integer -            
             
@@ -276,16 +277,14 @@ function audio_service() {
             service_exec_cmd "speaker" "connect" "last_speaker"
           ) &
             
-            rec_pid=$(pgrep -a rec | grep signed-integer | cut -d" " -f1)
-            play_pid=$(pgrep -a play | grep signed-integer | cut -d" " -f1) 
-            bluealsa_pid=$(pgrep -a bluealsa | grep /usr/bin/bluealsa | cut -d" " -f1)
-            
-            #cpu rt priority to audio processes
-            chrt -p 99 $bluealsa_pid            
-            chrt -p 99 $rec_pid
-            chrt -p 99 $play_pid
-
-
+          rec_pid=$(pgrep -a rec | grep signed-integer | cut -d" " -f1)
+          play_pid=$(pgrep -a play | grep signed-integer | cut -d" " -f1) 
+          bluealsa_pid=$(pgrep -a bluealsa | grep /usr/bin/bluealsa | cut -d" " -f1)
+          
+          #cpu rt priority to audio processes
+          chrt -p 99 $bluealsa_pid            
+          chrt -p 99 $rec_pid
+          chrt -p 99 $play_pid
           ;;
         "rec_dev"*) 
           rec_dev=$(echo "$cmd" | cut -d@ -f2)
@@ -296,6 +295,9 @@ function audio_service() {
         "spkr_volctl"*)
           spkr_volctl=$(echo "$cmd" | cut -d@ -f2)
           ;;
+        "spkr_name"*)
+          spkr_name=$(echo "$cmd" | cut -d@ -f2)
+          ;;          
         "sox_effects"*)
           sox_effects=$(echo "$cmd" | cut -d@ -f2)
           ;;
