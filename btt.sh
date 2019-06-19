@@ -82,6 +82,7 @@ function speaker_service()
   playback_dev=""
   rec_dev="plughw:1,0"
   dbus_addr=""
+  conn_retry=1
 
 
   while true
@@ -122,8 +123,8 @@ function speaker_service()
               continue
             fi
 
-            conn_retry=1
-            echo "Trying to connect speaker [$spkr_name] , [$spkr_bdaddr] ... , attempt $conn_retry of 10"
+            
+            echo "Trying to connect speaker [$spkr_name] , [$spkr_bdaddr] ,  attempt $conn_retry of 10"
             dbus-send --system  --reply-timeout=3000 --dest=org.bluez --print-reply --type=method_call /org/bluez/hci0/dev_$dbus_addr org.bluez.Device1.Connect &> /dev/null
             local conn_status_cmd=$(dbus-send --system --reply-timeout=2000 --dest=org.bluez --print-reply /org/bluez/hci0/dev_$dbus_addr org.freedesktop.DBus.Properties.Get string:"org.bluez.Device1" string:"Connected" 2> /dev/null)
             conn_status=$(echo "$conn_status_cmd" | awk '/true|false/{print $3}')            
@@ -143,12 +144,12 @@ function speaker_service()
               service_exec_cmd "audio" "spkr_name"  "$spkr_name"
               sleep 0.4
               service_exec_cmd "audio" "bttplay"
+              conn_retry=1
             else
-              echo "Speaker not connected, retrying..."
+              echo "Can't connect speaker!"
               conn_retry=$((conn_retry+1))
               sleep 10          
-
-              if [ "$conn_retry" -lt 10 ] ;
+              if [ $conn_retry -lt 10 ] ;
               then
                 service_exec_cmd "speaker" "connect" "current_speaker"              
               else
@@ -239,7 +240,7 @@ function audio_service() {
   local buff_sz="2048"
   local br="16"  
   local sox_logs="-V1 -q"
-  local sox_effects="noisered $CONF_DIR/noise.prof 0.30 : riaa :  bass +10 : treble 5"
+  local sox_effects="noisered $CONF_DIR/noise.prof 0.30 : riaa :  bass +15 : treble 1"
   if [ ! -f "$CONF_DIR/noise.prof" ] ; then #noise profile does not exists
     sox_effects="riaa :  bass +10 : treble 5"
   fi
