@@ -94,7 +94,7 @@ function speaker_service()
             name_prefix=$(echo "$cmd" | cut -d@ -f2)            
 
             #select another speaker
-            if [ "$name_prefix" != "last_speaker" ] ; 
+            if [ "$name_prefix" != "current_speaker" ] && [ "$name_prefix" != "" ] ; 
             then 
               #stop running audio services
               killall rec &>/dev/null
@@ -114,7 +114,11 @@ function speaker_service()
               dbus_addr=$(echo $spkr_bdaddr | tr : _)
               echo "Loaded Speaker parameters: [$spkr_name] , [$spkr_bdaddr]"              
             else
-              service_exec_cmd "speaker" "config" "$name_prefix"
+              if [ "$name_prefix" != "current_speaker" ]; then
+                service_exec_cmd "speaker" "config" "$name_prefix"
+              else
+                echo "No configuration found, try to connect a speaker by its name prefix" 
+              fi
               continue
             fi
 
@@ -146,7 +150,7 @@ function speaker_service()
 
               if [ "$conn_retry" -lt 10 ] ;
               then
-                service_exec_cmd "speaker" "connect"              
+                service_exec_cmd "speaker" "connect" "current_speaker"              
               else
                 continue #fail, wait the next cmd
               fi
@@ -164,7 +168,7 @@ function speaker_service()
             echo -e 'exit\n' >&${COPROC[1]}
             
             local output=$(cat <&${COPROC[0]})
-            spkr_bdaddr=$(echo "$output"  | grep -i "Device.*$name_prefix"  | grep -o "[[:xdigit:]:]\{11,17\}")
+            spkr_bdaddr=$(echo "$output"  | grep -v -E 'NEW|CHG' | grep -i "Device.*$name_prefix"  | grep -o "[[:xdigit:]:]\{11,17\}")
             spkr_bdaddr=$(echo "$spkr_bdaddr" | awk '{$1=$1;print}' | uniq) 
             spkr_name=$(echo "$output"  | grep -i "Device.*$name_prefix" | sed -e 's/.*Device.*[[:xdigit:]:]\{11,17\}//g')
             spkr_name=$(echo "$spkr_name" | awk '{$1=$1;print}' | uniq)
@@ -175,7 +179,7 @@ function speaker_service()
               echo "Using speaker : [$spkr_name] @ [$spkr_bdaddr]"
               echo "$spkr_bdaddr" > "$SPKR_CONF_FILE"
               echo "$spkr_name" >> "$SPKR_CONF_FILE"
-              service_exec_cmd "speaker" "connect" "$name_prefix"
+              service_exec_cmd "speaker" "connect" "current_speaker"
             else #Speaker not paired, try to pair
               service_exec_cmd "speaker" "pair" "$name_prefix"
             fi
@@ -197,9 +201,9 @@ function speaker_service()
             
             #match name_prefix between discovered devices
             local output=$(cat <&${COPROC[0]})
-            spkr_bdaddr=$(echo "$output" | grep -i "$name_prefix"  | grep -o "[[:xdigit:]:]\{11,17\}")
-            spkr_bdaddr=$(echo "$spkr_bdaddr" | uniq)
-            spkr_name=$(echo "$output" | grep -i "$name_prefix" | sed -e 's/.*Device.*[[:xdigit:]:]\{11,17\}//g')
+            spkr_bdaddr=$(echo "$output"  | grep -v -E 'NEW|CHG' | grep -i "Device.*$name_prefix"  | grep -o "[[:xdigit:]:]\{11,17\}")
+            spkr_bdaddr=$(echo "$spkr_bdaddr" | awk '{$1=$1;print}' | uniq) 
+            spkr_name=$(echo "$output"  | grep -i "Device.*$name_prefix" | sed -e 's/.*Device.*[[:xdigit:]:]\{11,17\}//g')
             spkr_name=$(echo "$spkr_name" | awk '{$1=$1;print}' | uniq)
             
           
@@ -214,7 +218,9 @@ function speaker_service()
             sleep 10
             echo -e "disconnect $spkr_bdaddr \n" >&${COPROC[1]}  
             sleep 1
-            echo -e 'exit\n' >&${COPROC[1]}                  
+            echo -e 'exit\n' >&${COPROC[1]}    
+            
+            service_exec_cmd "speaker" "config" "$name_prefix"
             ;;
       esac
     fi
@@ -249,15 +255,15 @@ function audio_service() {
       echo "audio command : $cmd"
       case "$cmd" in
         "vol"*)          
-          vol=$(echo "$cmd" | cut -d= -f2)
-          amixer -D bluealsa sset "$spkr_volctl" "$vol" &> /dev/null
+          vol=$(echo "$cmd" | cut -d@ -f2)
+          amixer -D bluealsa sset "$spkr_volctl" "$vol" &>/dev/null 
           ;;
         "mute"*)        
-          amixer -D bluealsa sset "$spkr_volctl"  toggle &> /dev/null
+          amixer -D bluealsa sset "$spkr_volctl"  toggle &>/dev/null
           ;;
         "bttplay"*)
           echo "Starting audio play on $spkr_name ..."
-          amixer -D bluealsa sset "$spkr_volctl" "60%" 
+          amixer -D bluealsa sset "$spkr_volctl" "25%" 
 
           export rec_dev="$rec_dev"
           export playback_dev="$playback_dev"
@@ -274,7 +280,7 @@ function audio_service() {
             AUDIODEV="$playback_dev" play $sox_logs --buffer $buff_sz -c 1 -t wav -r $sr -b $br -e signed-integer -            
             
             #something went wrong above
-            service_exec_cmd "speaker" "connect" "last_speaker"
+            service_exec_cmd "speaker" "connect" "current_speaker"
           ) &
             
           rec_pid=$(pgrep -a rec | grep signed-integer | cut -d" " -f1)
@@ -362,7 +368,7 @@ speaker_service &
 sleep 1
 audio_service &
 sleep 2
-service_exec_cmd "speaker" "connect" "last_speaker"
+service_exec_cmd "speaker" "connect" "current_speaker"
 
 while true :
 do
