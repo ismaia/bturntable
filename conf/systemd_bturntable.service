@@ -7,7 +7,7 @@ StartLimitIntervalSec=0
 Type=simple
 Restart=always
 RestartSec=5
-ExecStart=/bin/bash /usr/bin/btt
+ExecStart=/usr/bin/btt
 StandardOutput=inherit
 StandardError=inherit
 

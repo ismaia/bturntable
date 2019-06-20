@@ -7,6 +7,6 @@ install:
 
 uninstall:
 	rm -f /usr/bin/btt
-	rm -rf mkdir -p $(HOME)/.bturntable
+	rm -rf $(HOME)/.bturntable
 	rm -f /etc/systemd/system/bturntable.service
 

@@ -43,11 +43,10 @@ fi
 
 #global variables
 CONF_DIR="$HOME/.bturntable"
-SPKR_CONF_FILE="$CONF_DIR/speaker.conf"
 HOST_BDADDR=$(hciconfig dev | grep -o "[[:xdigit:]:]\{11,17\}")
 
 
-if [ -d "$CONF_DIR" ]; then
+if [ ! -d "$CONF_DIR" ]; then
   mkdir -p "$CONF_DIR"
 fi
 
@@ -71,7 +70,6 @@ function service_exec_cmd() {
 }
 
 
-
 function speaker_service() 
 {    
   echo "Speaker Service"
@@ -81,9 +79,10 @@ function speaker_service()
   spkr_volctl=""
   playback_dev=""
   rec_dev="plughw:1,0"
-  dbus_addr=""
+  spkr_bdaddr_dbus=""
   conn_retry=1
-
+  old_name_prefix="old"
+  pair_retry=1
 
   while true
   do
@@ -92,75 +91,66 @@ function speaker_service()
       echo "speaker command : $cmd"
       case "$cmd" in     
         "connect"*)   
-            name_prefix=$(echo "$cmd" | cut -d@ -f2)            
+            spkr_name_prefix=$(echo "$cmd" | cut -d@ -f2)                
 
-            #select another speaker
-            if [ "$name_prefix" != "current_speaker" ] && [ "$name_prefix" != "" ] ; 
-            then 
-              #stop running audio services
+            if [ "$old_name_prefix" != "$spkr_name_prefix" ];
+            then
+              #kill current playing
               killall rec &>/dev/null
               killall play &>/dev/null
-              service_exec_cmd "speaker" "config" "$name_prefix"
-              continue #read the next command 
-            fi
 
-            #check is a config exists
-            if [ -f "$SPKR_CONF_FILE" ]; then
-              spkr_bdaddr=$(cat "$SPKR_CONF_FILE" | head -1)
-              spkr_name=$(cat "$SPKR_CONF_FILE" | tail -1)
-              dbus_addr=$(echo $spkr_bdaddr | tr : _)
-                                          
-              spkr_volctl="'$spkr_name - A2DP'"
-              playback_dev="bluealsa:HCI=hci0,DEV=$spkr_bdaddr,PROFILE=a2dp"
-              dbus_addr=$(echo $spkr_bdaddr | tr : _)
-              echo "Loaded Speaker parameters: [$spkr_name] , [$spkr_bdaddr]"              
-            else
-              if [ "$name_prefix" != "current_speaker" ]; then
-                service_exec_cmd "speaker" "config" "$name_prefix"
-              else
-                echo "No configuration found, try to connect a speaker by its name prefix" 
-              fi
-              continue
+              old_name_prefix=$spkr_name_prefix
+              service_exec_cmd "speaker" "load_config"
+              continue #wait the next cmd           
             fi
-
             
             echo "Trying to connect speaker [$spkr_name] , [$spkr_bdaddr] ,  attempt $conn_retry of 10"
-            dbus-send --system  --reply-timeout=3000 --dest=org.bluez --print-reply --type=method_call /org/bluez/hci0/dev_$dbus_addr org.bluez.Device1.Connect &> /dev/null
-            local conn_status_cmd=$(dbus-send --system --reply-timeout=2000 --dest=org.bluez --print-reply /org/bluez/hci0/dev_$dbus_addr org.freedesktop.DBus.Properties.Get string:"org.bluez.Device1" string:"Connected" 2> /dev/null)
-            conn_status=$(echo "$conn_status_cmd" | awk '/true|false/{print $3}')            
+            #dbus connect method call 
+            spkr_bdaddr_dbus=$(echo $spkr_bdaddr | tr : _)            
             
-            if [ "$conn_status" == "true" ];
-            then
+            local connect_request=$(dbus-send --system  --reply-timeout=3000 --dest=org.bluez --print-reply --type=method_call \
+                                            /org/bluez/hci0/dev_$spkr_bdaddr_dbus org.bluez.Device1.Connect &> /dev/null)
+            $connect_request
+
+            local conn_reply=$(dbus-send --system --reply-timeout=3000 --dest=org.bluez --print-reply \
+                                            /org/bluez/hci0/dev_$spkr_bdaddr_dbus org.freedesktop.DBus.Properties.Get \
+                                            string:"org.bluez.Device1" string:"Connected" 2> /dev/null)
+
+            conn_reply=$(echo "$conn_reply" | awk '/true|false/{print $3}')
+                        
+            if [ "$conn_reply" == "true" ];
+            then              
               echo "Speaker $spkr_bdaddr connected"
-              #passing variables to audio service
+              #passing variables to audio service                                          
+              spkr_volctl="'$spkr_name - A2DP'"
+              playback_dev="bluealsa:HCI=hci0,DEV=$spkr_bdaddr,PROFILE=a2dp"
+              
               service_exec_cmd "audio" "playback_dev" "$playback_dev"
               sleep 0.4
               service_exec_cmd "audio" "spkr_volctl"  "$spkr_volctl"
               sleep 0.4
               service_exec_cmd "audio" "rec_dev"      "$rec_dev"
               sleep 0.4
-              service_exec_cmd "audio" "sox_effects"  "$sox_effects"
-              sleep 0.4
-              service_exec_cmd "audio" "spkr_name"  "$spkr_name"
+              service_exec_cmd "audio" "spkr_name"    "$spkr_name"
               sleep 0.4
               service_exec_cmd "audio" "bttplay"
               conn_retry=1
             else
               echo "Can't connect speaker!"
-              conn_retry=$((conn_retry+1))
-              sleep 10          
-              if [ $conn_retry -lt 10 ] ;
+              sleep 20          
+              if [ $conn_retry -lt 10 ];
               then
-                service_exec_cmd "speaker" "connect" "current_speaker"              
-              else
+                conn_retry=$((conn_retry+1))
+                service_exec_cmd "speaker" "connect" "$spkr_name_prefix"              
+              else               
+                echo "sleep!"
                 continue #fail, wait the next cmd
               fi
             fi
             ;;
 
-        "config"*)
-            name_prefix=$(echo "$cmd" | cut -d@ -f2)            
-
+        "load_config"*)
+            
             #check paired speakers
             coproc bluetoothctl
             sleep 1
@@ -168,26 +158,32 @@ function speaker_service()
             sleep 1
             echo -e 'exit\n' >&${COPROC[1]}
             
+            #match spkr_name_prefix between paired devices
             local output=$(cat <&${COPROC[0]})
-            spkr_bdaddr=$(echo "$output"  | grep -v -E 'NEW|CHG' | grep -i "Device.*$name_prefix"  | grep -o "[[:xdigit:]:]\{11,17\}")
+            spkr_bdaddr=$(echo "$output"  | grep -v -E 'NEW|CHG' | grep -i "Device.*$spkr_name_prefix"  | grep -o "[[:xdigit:]:]\{11,17\}")
             spkr_bdaddr=$(echo "$spkr_bdaddr" | awk '{$1=$1;print}' | uniq) 
-            spkr_name=$(echo "$output"  | grep -i "Device.*$name_prefix" | sed -e 's/.*Device.*[[:xdigit:]:]\{11,17\}//g')
-            spkr_name=$(echo "$spkr_name" | awk '{$1=$1;print}' | uniq)
-            
+            spkr_name=$(echo "$output"  | grep -i "Device.*$spkr_name_prefix" | sed -e 's/.*Device.*[[:xdigit:]:]\{11,17\}//g')
+            spkr_name=$(echo "$spkr_name" | awk '{$1=$1;print}' | uniq)            
+
             #Speaker already paired -> create a config file
-            if [ "$spkr_bdaddr" != "" ];
+            if [ "$spkr_bdaddr" != "" ] && [ "$spkr_name" != "" ];
             then
+              pair_retry=1
               echo "Using speaker : [$spkr_name] @ [$spkr_bdaddr]"
-              echo "$spkr_bdaddr" > "$SPKR_CONF_FILE"
-              echo "$spkr_name" >> "$SPKR_CONF_FILE"
-              service_exec_cmd "speaker" "connect" "current_speaker"
+              service_exec_cmd "speaker" "connect" "$spkr_name_prefix"
             else #Speaker not paired, try to pair
-              service_exec_cmd "speaker" "pair" "$name_prefix"
+               if [ $conn_retry -lt 10 ] ; then
+                  echo "Trying to pair speaker, attempt $pair_retry of 10"
+                  pair_retry=$((pair_retry+1))
+                  service_exec_cmd "speaker" "pair"
+               else
+                  continue #failed to pair, wait next cmd
+               fi
             fi
             ;;
 
         "pair"*)  
-            name_prefix=$(echo "$cmd" | cut -d@ -f2)
+  
             coproc bluetoothctl
             sleep 2
             #find spkr_bdaddr and spkr_name
@@ -200,14 +196,13 @@ function speaker_service()
             sleep 1
             echo -e 'exit\n' >&${COPROC[1]}
             
-            #match name_prefix between discovered devices
+            #match spkr_name_prefix between discovered devices
             local output=$(cat <&${COPROC[0]})
-            spkr_bdaddr=$(echo "$output"  | grep -v -E 'NEW|CHG' | grep -i "Device.*$name_prefix"  | grep -o "[[:xdigit:]:]\{11,17\}")
+            spkr_bdaddr=$(echo "$output"  | grep -v -E 'NEW|CHG' | grep -i "Device.*$spkr_name_prefix"  | grep -o "[[:xdigit:]:]\{11,17\}")
             spkr_bdaddr=$(echo "$spkr_bdaddr" | awk '{$1=$1;print}' | uniq) 
-            spkr_name=$(echo "$output"  | grep -i "Device.*$name_prefix" | sed -e 's/.*Device.*[[:xdigit:]:]\{11,17\}//g')
+            spkr_name=$(echo "$output"  | grep -i "Device.*$spkr_name_prefix" | sed -e 's/.*Device.*[[:xdigit:]:]\{11,17\}//g')
             spkr_name=$(echo "$spkr_name" | awk '{$1=$1;print}' | uniq)
             
-          
             coproc bluetoothctl
             sleep 2
             #pair spkr_bdaddr
@@ -220,8 +215,10 @@ function speaker_service()
             echo -e "disconnect $spkr_bdaddr \n" >&${COPROC[1]}  
             sleep 1
             echo -e 'exit\n' >&${COPROC[1]}    
+            sleep 1
             
-            service_exec_cmd "speaker" "config" "$name_prefix"
+            #suposed to be paired at this point, try to create a conf file
+            service_exec_cmd "speaker" "load_config"
             ;;
       esac
     fi
@@ -242,7 +239,7 @@ function audio_service() {
   local sox_logs="-V1 -q"
   local sox_effects="noisered $CONF_DIR/noise.prof 0.30 : riaa :  bass +15 : treble 1"
   if [ ! -f "$CONF_DIR/noise.prof" ] ; then #noise profile does not exists
-    sox_effects="riaa :  bass +10 : treble 5"
+    sox_effects="riaa :  bass +15 : treble 1"
   fi
 
   echo "Audio Service"
@@ -263,35 +260,26 @@ function audio_service() {
           amixer -D bluealsa sset "$spkr_volctl"  toggle &>/dev/null
           ;;
         "bttplay"*)
-          echo "Starting audio play on $spkr_name ..."
-          amixer -D bluealsa sset "$spkr_volctl" "25%" 
-
-          export rec_dev="$rec_dev"
-          export playback_dev="$playback_dev"
-          export sox_logs="$sox_logs"
-          export buff_sz="$buff_sz"
-          export sr="$sr"
-          export br="$br"
-          export sox_effects="$sox_effects"
+          echo "Starting audio playback on $spkr_name ..."
+          amixer -D bluealsa sset "$spkr_volctl" "35%" 
 
           #play in a subshell 
           (
-
+            #kill all previous instances
             AUDIODEV="$rec_dev" rec  $sox_logs --buffer $buff_sz -c 1 -t wav -r $sr -b $br -e signed-integer - $sox_effects  | \
             AUDIODEV="$playback_dev" play $sox_logs --buffer $buff_sz -c 1 -t wav -r $sr -b $br -e signed-integer -            
-            
-            #something went wrong above
-            service_exec_cmd "speaker" "connect" "current_speaker"
+            sleep 5
           ) &
-            
-          rec_pid=$(pgrep -a rec | grep signed-integer | cut -d" " -f1)
-          play_pid=$(pgrep -a play | grep signed-integer | cut -d" " -f1) 
+          
+          sleep 0.5
+          rec_pid=$(pgrep -a rec | grep wav | cut -d" " -f1) 
+          play_pid=$(pgrep -a play | grep wav | cut -d" " -f1) 
           bluealsa_pid=$(pgrep -a bluealsa | grep /usr/bin/bluealsa | cut -d" " -f1)
           
           #cpu rt priority to audio processes
-          chrt -p 99 $bluealsa_pid            
-          chrt -p 99 $rec_pid
-          chrt -p 99 $play_pid
+          chrt -p 99 $bluealsa_pid &>/dev/null          
+          chrt -p 99 $rec_pid      &>/dev/null
+          chrt -p 99 $play_pid     &>/dev/null
           ;;
         "rec_dev"*) 
           rec_dev=$(echo "$cmd" | cut -d@ -f2)
@@ -309,7 +297,8 @@ function audio_service() {
           sox_effects=$(echo "$cmd" | cut -d@ -f2)
           ;;
         "stop"*)
-          sleep 10000
+          killall rec &>/dev/null
+          killall play &>/dev/null
           ;;
       esac
     fi
@@ -336,16 +325,14 @@ function main_service()
           service_exec_cmd "speaker" "connect" "$spkr_name_prefix"
           ;;
         #send sox_effects to sox
-        "sox_effects"*)
+        "effects"*)
           ;;
-
         #volume control
         "vol"*)
           #format: vol=5%+ , 5%- , 1db+ , 1db- 
           val=$(echo "$cmd" | cut -d= -f2)
           service_exec_cmd "audio" "vol" "$val"
           ;;
-
         "mute"*)
           service_exec_cmd "audio" "mute"          
           ;;
@@ -368,8 +355,6 @@ sleep 1
 speaker_service &
 sleep 1
 audio_service &
-sleep 2
-service_exec_cmd "speaker" "connect" "current_speaker"
 
 while true :
 do
