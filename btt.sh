@@ -16,7 +16,6 @@ function ctrl_c() {
    exit
 }
 
-
 MAIN_TOPIC="btt"
 SPKR_TOPIC="btt/speaker"
 AUDIO_TOPIC="btt/audio"

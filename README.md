@@ -67,12 +67,13 @@ I coded a bash script that automates everything, all you need is to install depe
  * MQTT Topic : btt        
  * MQTT Messages:
    * Speaker setup and connection :  mosquitto_pub -t "btt" "connect=SPKR_NAME_PREFIX"
-   * Volume+:  mosquitto_pub -t "btt" "vol=5%+"   
-   * Volume-:  mosquitto_pub -t "btt" "vol=5%-" 
-   * Bass+  :  mosquitto_pub -t "btt" "bass=10%-" 
-   * Bass-  :  mosquitto_pub -t "btt" "bass=10%-"    
-   * treble+:  mosquitto_pub -t "btt" "treble=10%+" 
-   * treble+:  mosquitto_pub -t "btt" "treble=10%-" 
+   * Volume+      :  mosquitto_pub -t "btt" "vol=5%+"   
+   * Volume-      :  mosquitto_pub -t "btt" "vol=5%-" 
+   * Mute/Toggle  :  mosquitto_pub -t "btt" "bass=10%-" 
+   * Bass+        :  mosquitto_pub -t "btt" "bass=10%-" 
+   * Bass-        :  mosquitto_pub -t "btt" "bass=10%-"    
+   * treble+      :  mosquitto_pub -t "btt" "treble=10%+" 
+   * treble+      :  mosquitto_pub -t "btt" "treble=10%-" 
    * noise reduction: mosquitto_pub -t "btt" "noise_red=2%+" 
 
 
