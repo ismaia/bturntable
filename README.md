@@ -79,17 +79,22 @@ I coded a bash script that automates everything, all you need is to install depe
 
 ### Playing some Vinyl LP
 
-Once you've installed rpi side you can start the system by running the command:
-
-```
-mosquitto_pub -t "btt" "connect=SPKR_NAME_PREFIX"
-```
-
-
-To run the system you need on setup raspberry with the *bturnplay* service and a smatphone with a MQTT client as said above
-All the pairing and connection process are automatic once the setup is done on both sides(rpi and smartphone) 
-
 Turn on the speaker and put it on pairing mode
+
+Once you've installed rpi side you can start the system by running the script *btt.sh*:
+
+```
+./btt
+```
+
+From a PC:
+```
+mosquitto_pub -h RPI_IP -t "btt" "connect=SPKR_NAME_PREFIX"
+```
+
+It's very convenient to install a MQTT client on the phone and to control everything
+I'm using the app [MQTT Dashboard](https://play.google.com/store/apps/details?id=com.app.vetru.mqttdashboard&hl=en)
+you can donwlod a pre-configured MQTT file for this app from project's conf dir and import it
 
 
 
