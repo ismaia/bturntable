@@ -265,7 +265,6 @@ function audio_service() {
 
           #play in a subshell 
           (
-            #kill all previous instances
             AUDIODEV="$rec_dev" rec  $sox_logs --buffer $buff_sz -c 1 -t wav -r $sr -b $br -e signed-integer - $sox_effects  | \
             AUDIODEV="$playback_dev" play $sox_logs --buffer $buff_sz -c 1 -t wav -r $sr -b $br -e signed-integer -            
             sleep 5
