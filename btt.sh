@@ -234,7 +234,7 @@ function audio_service() {
   local playback_dev=""
   local sr="44100"
   local buff_sz="2048"
-  local br="16"  
+  local sbits="16"  
   local sox_logs="-V1 -q"
   local sox_effects="noisered $CONF_DIR/noise.prof 0.30 : riaa :  bass +15 : treble 1"
   if [ ! -f "$CONF_DIR/noise.prof" ] ; then #noise profile does not exists
@@ -264,8 +264,8 @@ function audio_service() {
 
           #play in a subshell 
           (
-            AUDIODEV="$rec_dev" rec  $sox_logs --buffer $buff_sz -c 1 -t wav -r $sr -b $br -e signed-integer - $sox_effects  | \
-            AUDIODEV="$playback_dev" play $sox_logs --buffer $buff_sz -c 1 -t wav -r $sr -b $br -e signed-integer -            
+            AUDIODEV="$rec_dev" rec  $sox_logs --buffer $buff_sz -c 1 -t wav -r $sr -b $sbits -e signed-integer - $sox_effects  | \
+            AUDIODEV="$playback_dev" play $sox_logs --buffer $buff_sz -c 1 -t wav -r $sr -b $sbits -e signed-integer -            
             sleep 5
           ) &
           
